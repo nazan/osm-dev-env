@@ -1,0 +1,1 @@
+New-NetFirewallRule -Name FirefoxRemote -DisplayName "Open Port 9003" -Direction Inbound -Protocol tcp -LocalPort 9003 -Action Allow -Enabled True

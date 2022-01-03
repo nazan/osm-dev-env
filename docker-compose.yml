@@ -1,0 +1,171 @@
+version: "3"
+
+services:
+  osm-auth:
+    build:
+      context: ./osm-auth-dc
+      dockerfile: php-fpm.dockerfile
+      args:
+        - UID
+        - GID
+    image: osm-auth-dev-env
+    working_dir: /var/www/html
+    user: ${UID}:${GID}
+    volumes:
+      - ./osm-auth:/var/www/html
+      - ./osm-auth-dc:/usr/src/aidock/build
+      - ./osm-auth-dc/extra.ini:/usr/local/etc/php/conf.d/extra.ini
+      - ./osm-auth-dc/xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+      - ./osm-auth-dc/.npm-appuser:/home/appuser/.npm
+      - ./osm-auth-dc/.npm:/root/.npm
+      - ${HOME}/.composer:/home/appuser/.composer
+    env_file: ./osm-auth-dc/.env
+    depends_on:
+      - osm-auth-database
+      - osm-redis
+      - osm-directory-nginx
+
+  osm-auth-nginx:
+    build:
+      context: ./osm-auth-dc
+      dockerfile: generic-nginx.dockerfile
+    volumes:
+      - ./osm-auth:/var/www/html
+      - ./osm-auth-dc:/usr/src/aidock/build
+      - ./osm-auth-dc/vhosts:/etc/nginx/templates
+      - ./osm-auth-dc/log/nginx-error.log:/var/log/nginx/app-error.log
+      - ./osm-auth-dc/log/nginx-access.log:/var/log/nginx/app-access.log
+    ports:
+      - "${OSM_AUTH_WEB_MAPPED_PORT}:80"
+    env_file: ./osm-auth-dc/.env
+    depends_on:
+      - osm-auth
+  
+  osm-auth-database:
+    image: mysql:5.7.23
+    volumes:
+      - dbdata1:/var/lib/mysql
+    ports:
+      - "${OSM_AUTH_DB_MAPPED_PORT}:3306"
+    environment:
+      - "MYSQL_DATABASE=main"
+      - "MYSQL_USER=user"
+      - "MYSQL_PASSWORD=password"
+      - "MYSQL_ROOT_PASSWORD=password"
+
+  osm-directory:
+    build:
+      context: ./osm-directory-dc
+      dockerfile: php-fpm.dockerfile
+      args:
+        - UID
+        - GID
+    image: osm-directory-dev-env
+    working_dir: /var/www/html
+    user: ${UID}:${GID}
+    volumes:
+      - ./osm-directory:/var/www/html
+      - ./osm-directory-dc:/usr/src/aidock/build
+      - ./osm-directory-dc/extra.ini:/usr/local/etc/php/conf.d/extra.ini
+      - ./osm-directory-dc/xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+      - ./osm-directory-dc/.npm-appuser:/home/appuser/.npm
+      - ./osm-directory-dc/.npm:/root/.npm
+      - ${HOME}/.composer:/home/appuser/.composer
+    env_file: ./osm-directory-dc/.env
+    depends_on:
+      - osm-directory-database
+      - osm-redis
+
+  osm-directory-nginx:
+    build:
+      context: ./osm-directory-dc
+      dockerfile: generic-nginx.dockerfile
+    volumes:
+      - ./osm-directory:/var/www/html
+      - ./osm-directory-dc:/usr/src/aidock/build
+      - ./osm-directory-dc/vhosts:/etc/nginx/templates
+      - ./osm-directory-dc/log/nginx-error.log:/var/log/nginx/app-error.log
+      - ./osm-directory-dc/log/nginx-access.log:/var/log/nginx/app-access.log
+    ports:
+      - "${OSM_DIR_WEB_MAPPED_PORT}:80"
+    env_file: ./osm-directory-dc/.env
+    depends_on:
+      - osm-directory
+
+  osm-directory-database:
+    image: mysql:5.7.23
+    volumes:
+      - dbdata:/var/lib/mysql
+    ports:
+      - "${OSM_DIR_DB_MAPPED_PORT}:3306"
+    environment:
+      - "MYSQL_DATABASE=main"
+      - "MYSQL_USER=user"
+      - "MYSQL_PASSWORD=password"
+      - "MYSQL_ROOT_PASSWORD=password"
+
+  osm-files:
+    build:
+      context: ./osm-files-dc
+      dockerfile: php-fpm.dockerfile
+      args:
+        - UID
+        - GID
+    image: osm-files-dev-env
+    working_dir: /var/www/html
+    user: ${UID}:${GID}
+    volumes:
+      - ./osm-files:/var/www/html
+      - ./media:/var/www/html/storage/app/media
+      - ./osm-files-dc:/usr/src/aidock/build
+      - ./osm-files-dc/extra.ini:/usr/local/etc/php/conf.d/extra.ini
+      - ./osm-files-dc/xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+      - ./osm-files-dc/.npm-appuser:/home/appuser/.npm
+      - ./osm-files-dc/.npm:/root/.npm
+      - ${HOME}/.composer:/home/appuser/.composer
+    env_file: ./osm-files-dc/.env
+    depends_on:
+      - osm-files-database
+      - osm-redis
+      - osm-directory-nginx
+      - osm-auth-nginx
+
+  osm-files-nginx:
+    build:
+      context: ./osm-files-dc
+      dockerfile: generic-nginx.dockerfile
+    volumes:
+      - ./osm-files:/var/www/html
+      - ./osm-files-dc:/usr/src/aidock/build
+      - ./osm-files-dc/vhosts:/etc/nginx/templates
+      - ./osm-files-dc/log/nginx-error.log:/var/log/nginx/app-error.log
+      - ./osm-files-dc/log/nginx-access.log:/var/log/nginx/app-access.log
+    ports:
+      - "${OSM_FILES_WEB_MAPPED_PORT}:80"
+    env_file: ./osm-files-dc/.env
+    depends_on:
+      - osm-files
+  
+  osm-files-database:
+    image: mysql:5.7.23
+    volumes:
+      - dbdata2:/var/lib/mysql
+    ports:
+      - "${OSM_FILES_DB_MAPPED_PORT}:3306"
+    environment:
+      - "MYSQL_DATABASE=main"
+      - "MYSQL_USER=user"
+      - "MYSQL_PASSWORD=password"
+      - "MYSQL_ROOT_PASSWORD=password"
+
+  osm-redis:
+    image: redis:6.2.3-alpine
+    volumes:
+      - dbdata_redis:/data
+    command: ["redis-server", "--appendonly", "yes"]
+
+volumes:
+  dbdata:
+  dbdata1:
+  dbdata2:
+  dbdata_redis:

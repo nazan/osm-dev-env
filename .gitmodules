@@ -1,0 +1,15 @@
+[submodule "osm-directory"]
+	path = osm-directory
+	url = git@github.com:tradenetcorp/osm-directory.git
+	ignore = all
+	branch = first-commit
+[submodule "osm-auth"]
+	path = osm-auth
+	url = git@github.com:tradenetcorp/osm-auth.git
+	ignore = all
+	branch = first-commit
+[submodule "osm-files"]
+	path = osm-files
+	url = git@github.com:tradenetcorp/osm-files
+	ignore = all
+	branch = first-commit

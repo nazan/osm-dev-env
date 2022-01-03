@@ -1,0 +1,30 @@
+osm-directory/node_modules
+osm-directory/vendor
+
+osm-directory/.env
+
+# laravel bootstrap folder structure
+osm-directory/bootstrap/cache/*
+
+
+
+# laravel storage folder structure
+osm-directory/storage/framework/*
+!osm-directory/storage/framework/cache
+    osm-directory/storage/framework/cache/*
+    !osm-directory/storage/framework/cache/data
+        osm-directory/storage/framework/cache/data/*
+!osm-directory/storage/framework/sessions
+    osm-directory/storage/framework/sessions/*
+!osm-directory/storage/framework/testing
+    osm-directory/storage/framework/testing/*
+!osm-directory/storage/framework/views
+    osm-directory/storage/framework/views/*
+
+osm-directory/storage/logs/*
+
+osm-directory/storage/app/*
+!osm-directory/storage/app/media
+    osm-directory/storage/app/media/*
+!osm-directory/storage/app/public
+    osm-directory/storage/app/public/*
