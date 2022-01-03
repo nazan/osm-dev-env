@@ -25,6 +25,10 @@ osmauth-bash:
 osmfil-bash:
 	docker-compose exec osm-files bash
 
+.PHONY: osmloc-bash
+osmloc-bash:
+	docker-compose exec osm-locker bash
+
 
 
 
@@ -34,7 +38,7 @@ osmfil-bash:
 
 .PHONY: up
 up: touch-all
-	docker-compose up -d osm-files-nginx
+	docker-compose up -d osm-files-nginx osm-locker-nginx
 
 .PHONY: down
 down:
@@ -63,9 +67,14 @@ osmfil-prepare: osmfil-touch
 	docker-compose exec --user root:root osm-files /usr/src/aidock/build/prepare-super.sh
 	docker-compose exec osm-files /usr/src/aidock/build/prepare.sh
 
+.PHONY: osmloc-prepare
+osmloc-prepare: osmfil-touch
+	docker-compose exec --user root:root osm-locker /usr/src/aidock/build/prepare-super.sh
+	docker-compose exec osm-locker /usr/src/aidock/build/prepare.sh
+
 
 .PHONY: prepare-all
-prepare-all: osmdir-prepare osmauth-prepare osmfil-prepare
+prepare-all: osmdir-prepare osmauth-prepare osmfil-prepare osmloc-prepare
 	@echo "Post setup done for all application components."
 
 
@@ -76,6 +85,7 @@ checkout-masters:
 	git -C ./osm-directory checkout main
 	git -C ./osm-auth checkout main
 	git -C ./osm-files checkout main
+	git -C ./osm-locker checkout main
 
 
 .PHONY: osmdir-bootstrap
@@ -90,9 +100,13 @@ osmauth-bootstrap: osmauth-touch
 osmfil-bootstrap: osmfil-touch
 	@echo "OSM Files bootstrap complete."
 
+.PHONY: osmloc-bootstrap
+osmloc-bootstrap: osmloc-touch
+	@echo "OSM Locker bootstrap complete."
+
 
 .PHONY: first-time
-first-time: checkout-masters touch-all osmdir-bootstrap osmauth-bootstrap osmfil-bootstrap
+first-time: checkout-masters touch-all osmdir-bootstrap osmauth-bootstrap osmfil-bootstrap osmloc-bootstrap
 	@echo "First time routine complete."
 
 
@@ -103,6 +117,7 @@ purge-all:
 	docker-compose exec osm-directory /usr/src/aidock/build/purge.sh
 	docker-compose exec osm-auth /usr/src/aidock/build/purge.sh
 	docker-compose exec osm-files /usr/src/aidock/build/purge.sh
+	docker-compose exec osm-locker /usr/src/aidock/build/purge.sh
 
 
 # Create required directories and files in host machine.
@@ -147,8 +162,21 @@ osmfil-touch:
 	touch ./osm-files-dc/log/nginx-error.log
 	touch ./osm-files-dc/log/nginx-access.log
 
+.PHONY: osmloc-touch
+osmloc-touch:
+	cp -n ./osm-locker/.env.example ./osm-locker/.env
+	touch ./osm-locker/storage/logs/laravel.log
+	
+	cp -n ./osm-locker-dc/.env.example ./osm-locker-dc/.env
+	mkdir -p ./osm-locker-dc/.npm
+	mkdir -p ./osm-locker-dc/.npm-appuser
+	mkdir -p ./osm-locker-dc/log
+	touch ./osm-locker-dc/log/php-error.log
+	touch ./osm-locker-dc/log/nginx-error.log
+	touch ./osm-locker-dc/log/nginx-access.log
+
 
 .PHONY: touch-all
-touch-all: osmdir-touch osmauth-touch osmfil-touch
+touch-all: osmdir-touch osmauth-touch osmfil-touch osmloc-touch
 	cp -n ./.env.example ./.env
 	@echo "Required files in host machine generated."

@@ -13,3 +13,8 @@
 	url = git@github.com:tradenetcorp/osm-files
 	ignore = all
 	branch = first-commit
+[submodule "osm-locker"]
+	path = osm-locker
+	url = git@github.com:tradenetcorp/osm-locker.git
+	ignore = all
+	branch = first-commit

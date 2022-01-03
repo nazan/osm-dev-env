@@ -157,6 +157,60 @@ services:
       - "MYSQL_USER=user"
       - "MYSQL_PASSWORD=password"
       - "MYSQL_ROOT_PASSWORD=password"
+  
+  osm-locker:
+    build:
+      context: ./osm-locker-dc
+      dockerfile: php-fpm.dockerfile
+      args:
+        - UID
+        - GID
+    image: osm-locker-dev-env
+    working_dir: /var/www/html
+    user: ${UID}:${GID}
+    volumes:
+      - ./osm-locker:/var/www/html
+      - ./media:/var/www/html/storage/app/media
+      - ./osm-locker-dc:/usr/src/aidock/build
+      - ./osm-locker-dc/extra.ini:/usr/local/etc/php/conf.d/extra.ini
+      - ./osm-locker-dc/xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+      - ./osm-locker-dc/.npm-appuser:/home/appuser/.npm
+      - ./osm-locker-dc/.npm:/root/.npm
+      - ${HOME}/.composer:/home/appuser/.composer
+    env_file: ./osm-locker-dc/.env
+    depends_on:
+      - osm-locker-database
+      - osm-redis
+      - osm-directory-nginx
+      - osm-auth-nginx
+
+  osm-locker-nginx:
+    build:
+      context: ./osm-locker-dc
+      dockerfile: generic-nginx.dockerfile
+    volumes:
+      - ./osm-locker:/var/www/html
+      - ./osm-locker-dc:/usr/src/aidock/build
+      - ./osm-locker-dc/vhosts:/etc/nginx/templates
+      - ./osm-locker-dc/log/nginx-error.log:/var/log/nginx/app-error.log
+      - ./osm-locker-dc/log/nginx-access.log:/var/log/nginx/app-access.log
+    ports:
+      - "${OSM_LOCKER_WEB_MAPPED_PORT}:80"
+    env_file: ./osm-locker-dc/.env
+    depends_on:
+      - osm-locker
+  
+  osm-locker-database:
+    image: mysql:5.7.23
+    volumes:
+      - dbdata3:/var/lib/mysql
+    ports:
+      - "${OSM_LOCKER_DB_MAPPED_PORT}:3306"
+    environment:
+      - "MYSQL_DATABASE=main"
+      - "MYSQL_USER=user"
+      - "MYSQL_PASSWORD=password"
+      - "MYSQL_ROOT_PASSWORD=password"
 
   osm-redis:
     image: redis:6.2.3-alpine
@@ -168,4 +222,5 @@ volumes:
   dbdata:
   dbdata1:
   dbdata2:
+  dbdata3:
   dbdata_redis:
