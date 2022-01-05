@@ -170,7 +170,7 @@ services:
     user: ${UID}:${GID}
     volumes:
       - ./osm-locker:/var/www/html
-      - ./media:/var/www/html/storage/app/media
+      - ./media1:/var/www/html/storage/app/media
       - ./osm-locker-dc:/usr/src/aidock/build
       - ./osm-locker-dc/extra.ini:/usr/local/etc/php/conf.d/extra.ini
       - ./osm-locker-dc/xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
