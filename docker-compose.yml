@@ -218,6 +218,17 @@ services:
       - dbdata_redis:/data
     command: ["redis-server", "--appendonly", "yes"]
 
+  redis-commander:
+    hostname: redis-commander
+    image: rediscommander/redis-commander:latest
+    restart: always
+    depends_on:
+      - osm-redis
+    environment:
+      - REDIS_HOSTS=local:osm-redis:6379
+    ports:
+      - "8091:8081"
+
 volumes:
   dbdata:
   dbdata1:

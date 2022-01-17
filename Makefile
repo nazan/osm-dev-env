@@ -38,7 +38,7 @@ osmloc-bash:
 
 .PHONY: up
 up: touch-all
-	docker-compose up -d osm-files-nginx osm-locker-nginx
+	docker-compose up -d osm-files-nginx osm-locker-nginx redis-commander
 
 .PHONY: down
 down:
