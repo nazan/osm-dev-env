@@ -68,7 +68,7 @@ osmfil-prepare: osmfil-touch
 	docker-compose exec osm-files /usr/src/aidock/build/prepare.sh
 
 .PHONY: osmloc-prepare
-osmloc-prepare: osmfil-touch
+osmloc-prepare: osmloc-touch
 	docker-compose exec --user root:root osm-locker /usr/src/aidock/build/prepare-super.sh
 	docker-compose exec osm-locker /usr/src/aidock/build/prepare.sh
 
