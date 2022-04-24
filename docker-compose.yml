@@ -212,6 +212,21 @@ services:
       - "MYSQL_PASSWORD=password"
       - "MYSQL_ROOT_PASSWORD=password"
 
+  osm-ui:
+    build:
+      context: ./osm-ui-dc
+      dockerfile: nodejs.dockerfile
+      args:
+        - UID
+        - GID
+    user: ${UID}:${GID}
+    env_file: ./osm-ui-dc/.env
+    command: ["endless.sh"]
+    ports:
+      - "${OSM_UI_WEB_MAPPED_PORT}:3000"
+    volumes:
+      - ./osm-ui:/home/node/app
+
   osm-redis:
     image: redis:6.2.3-alpine
     volumes:

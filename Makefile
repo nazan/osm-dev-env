@@ -29,6 +29,14 @@ osmfil-bash:
 osmloc-bash:
 	docker-compose exec osm-locker bash
 
+.PHONY: osmui-serve
+osmui-serve:
+	docker-compose exec osm-ui npx webpack serve
+
+.PHONY: osmui-bash
+osmui-bash:
+	docker-compose exec osm-ui bash
+
 
 
 
@@ -38,7 +46,7 @@ osmloc-bash:
 
 .PHONY: up
 up: touch-all
-	docker-compose up -d osm-files-nginx osm-locker-nginx redis-commander
+	docker-compose up -d osm-files-nginx osm-locker-nginx osm-ui redis-commander
 
 .PHONY: down
 down:
@@ -86,6 +94,7 @@ checkout-masters:
 	git -C ./osm-auth checkout main
 	git -C ./osm-files checkout main
 	git -C ./osm-locker checkout main
+	git -C ./osm-ui checkout main
 
 
 .PHONY: osmdir-bootstrap
@@ -175,8 +184,12 @@ osmloc-touch:
 	touch ./osm-locker-dc/log/nginx-error.log
 	touch ./osm-locker-dc/log/nginx-access.log
 
+.PHONY: osmui-touch
+osmui-touch:
+	mkdir -p ./app/dist
+
 
 .PHONY: touch-all
-touch-all: osmdir-touch osmauth-touch osmfil-touch osmloc-touch
+touch-all: osmdir-touch osmauth-touch osmfil-touch osmloc-touch osmui-touch
 	cp -n ./.env.example ./.env
 	@echo "Required files in host machine generated."

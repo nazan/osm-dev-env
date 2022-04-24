@@ -21,7 +21,7 @@ RUN apt-get update && apt-get install -y \
     apt-get autoremove --yes && \
     rm -rf /var/lib/apt/lists/*
 
-ENV PHPREDIS_VERSION 3.0.0
+ENV PHPREDIS_VERSION 5.3.4
 
 RUN mkdir -p /usr/src/php/ext/redis \
     && curl -L https://github.com/phpredis/phpredis/archive/$PHPREDIS_VERSION.tar.gz | tar xvz -C /usr/src/php/ext/redis --strip 1 \
@@ -56,3 +56,13 @@ RUN npm install --global cross-env
 
 RUN pecl install xdebug-2.9.8 \
     && docker-php-ext-enable xdebug
+
+RUN apt-get update && apt-get install -y \
+    ghostscript \
+    libmagickwand-dev \
+    libmagickcore-dev
+
+RUN pecl install imagick \
+    && docker-php-ext-enable imagick
+
+RUN sed -i '/disable ghostscript format types/,+6d' /etc/ImageMagick-6/policy.xml
