@@ -53,6 +53,58 @@ services:
       - "MYSQL_PASSWORD=password"
       - "MYSQL_ROOT_PASSWORD=password"
 
+  osm-account:
+    build:
+      context: ./osm-account-dc
+      dockerfile: php-fpm.dockerfile
+      args:
+        - UID
+        - GID
+    image: osm-account-dev-env
+    working_dir: /var/www/html
+    user: ${UID}:${GID}
+    volumes:
+      - ./osm-account:/var/www/html
+      - ./osm-account-dc:/usr/src/aidock/build
+      - ./osm-account-dc/extra.ini:/usr/local/etc/php/conf.d/extra.ini
+      - ./osm-account-dc/xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+      - ./osm-account-dc/.npm-appuser:/home/appuser/.npm
+      - ./osm-account-dc/.npm:/root/.npm
+      - ${HOME}/.composer:/home/appuser/.composer
+    env_file: ./osm-account-dc/.env
+    depends_on:
+      - osm-account-database
+      - osm-redis
+      - osm-directory-nginx
+
+  osm-account-nginx:
+    build:
+      context: ./osm-account-dc
+      dockerfile: generic-nginx.dockerfile
+    volumes:
+      - ./osm-account:/var/www/html
+      - ./osm-account-dc:/usr/src/aidock/build
+      - ./osm-account-dc/vhosts:/etc/nginx/templates
+      - ./osm-account-dc/log/nginx-error.log:/var/log/nginx/app-error.log
+      - ./osm-account-dc/log/nginx-access.log:/var/log/nginx/app-access.log
+    ports:
+      - "${OSM_ACCOUNT_WEB_MAPPED_PORT}:80"
+    env_file: ./osm-account-dc/.env
+    depends_on:
+      - osm-account
+  
+  osm-account-database:
+    image: mysql:5.7.23
+    volumes:
+      - dbdata4:/var/lib/mysql
+    ports:
+      - "${OSM_ACCOUNT_DB_MAPPED_PORT}:3306"
+    environment:
+      - "MYSQL_DATABASE=main"
+      - "MYSQL_USER=user"
+      - "MYSQL_PASSWORD=password"
+      - "MYSQL_ROOT_PASSWORD=password"
+
   osm-directory:
     build:
       context: ./osm-directory-dc
@@ -128,7 +180,7 @@ services:
       - osm-files-database
       - osm-redis
       - osm-directory-nginx
-      - osm-auth-nginx
+      - osm-account-nginx
 
   osm-files-nginx:
     build:
@@ -182,7 +234,7 @@ services:
       - osm-locker-database
       - osm-redis
       - osm-directory-nginx
-      - osm-auth-nginx
+      - osm-account-nginx
 
   osm-locker-nginx:
     build:
@@ -249,4 +301,5 @@ volumes:
   dbdata1:
   dbdata2:
   dbdata3:
+  dbdata4:
   dbdata_redis:

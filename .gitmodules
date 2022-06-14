@@ -23,3 +23,8 @@
 	url = git@github.com:tradenetcorp/osm-ui.git
 	ignore = all
 	branch = first-commit
+[submodule "osm-account"]
+	path = osm-account
+	url = git@github.com:tradenetcorp/osm-account
+	ignore = all
+	branch = first-commit

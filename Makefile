@@ -21,6 +21,10 @@ osmdir-bash:
 osmauth-bash:
 	docker-compose exec osm-auth bash
 
+.PHONY: osmact-bash
+osmact-bash:
+	docker-compose exec osm-account bash
+
 .PHONY: osmfil-bash
 osmfil-bash:
 	docker-compose exec osm-files bash
@@ -46,7 +50,7 @@ osmui-bash:
 
 .PHONY: up
 up: touch-all
-	docker-compose up -d osm-files-nginx osm-locker-nginx osm-ui redis-commander
+	docker-compose up -d osm-files-nginx osm-locker-nginx redis-commander
 
 .PHONY: down
 down:
@@ -70,6 +74,11 @@ osmauth-prepare: osmauth-touch
 	docker-compose exec --user root:root osm-auth /usr/src/aidock/build/prepare-super.sh
 	docker-compose exec osm-auth /usr/src/aidock/build/prepare.sh
 
+.PHONY: osmact-prepare
+osmact-prepare: osmact-touch
+	docker-compose exec --user root:root osm-account /usr/src/aidock/build/prepare-super.sh
+	docker-compose exec osm-account /usr/src/aidock/build/prepare.sh
+
 .PHONY: osmfil-prepare
 osmfil-prepare: osmfil-touch
 	docker-compose exec --user root:root osm-files /usr/src/aidock/build/prepare-super.sh
@@ -82,7 +91,7 @@ osmloc-prepare: osmloc-touch
 
 
 .PHONY: prepare-all
-prepare-all: osmdir-prepare osmauth-prepare osmfil-prepare osmloc-prepare
+prepare-all: osmdir-prepare osmact-prepare osmfil-prepare osmloc-prepare
 	@echo "Post setup done for all application components."
 
 
@@ -92,6 +101,7 @@ prepare-all: osmdir-prepare osmauth-prepare osmfil-prepare osmloc-prepare
 checkout-masters:
 	git -C ./osm-directory checkout main
 	git -C ./osm-auth checkout main
+	git -C ./osm-account checkout dev
 	git -C ./osm-files checkout main
 	git -C ./osm-locker checkout main
 	git -C ./osm-ui checkout main
@@ -105,6 +115,10 @@ osmdir-bootstrap: osmdir-touch
 osmauth-bootstrap: osmauth-touch
 	@echo "OSM Auth bootstrap complete."
 
+.PHONY: osmact-bootstrap
+osmact-bootstrap: osmact-touch
+	@echo "OSM Account bootstrap complete."
+
 .PHONY: osmfil-bootstrap
 osmfil-bootstrap: osmfil-touch
 	@echo "OSM Files bootstrap complete."
@@ -115,7 +129,7 @@ osmloc-bootstrap: osmloc-touch
 
 
 .PHONY: first-time
-first-time: checkout-masters touch-all osmdir-bootstrap osmauth-bootstrap osmfil-bootstrap osmloc-bootstrap
+first-time: checkout-masters touch-all osmdir-bootstrap osmact-bootstrap osmfil-bootstrap osmloc-bootstrap
 	@echo "First time routine complete."
 
 
@@ -125,6 +139,7 @@ first-time: checkout-masters touch-all osmdir-bootstrap osmauth-bootstrap osmfil
 purge-all:
 	docker-compose exec osm-directory /usr/src/aidock/build/purge.sh
 	docker-compose exec osm-auth /usr/src/aidock/build/purge.sh
+	docker-compose exec osm-account /usr/src/aidock/build/purge.sh
 	docker-compose exec osm-files /usr/src/aidock/build/purge.sh
 	docker-compose exec osm-locker /usr/src/aidock/build/purge.sh
 
@@ -158,6 +173,19 @@ osmauth-touch:
 	touch ./osm-auth-dc/log/nginx-error.log
 	touch ./osm-auth-dc/log/nginx-access.log
 
+.PHONY: osmact-touch
+osmact-touch:
+	cp -n ./osm-account/.env.example ./osm-account/.env
+	touch ./osm-account/storage/logs/laravel.log
+	
+	cp -n ./osm-account-dc/.env.example ./osm-account-dc/.env
+	mkdir -p ./osm-account-dc/.npm
+	mkdir -p ./osm-account-dc/.npm-appuser
+	mkdir -p ./osm-account-dc/log
+	touch ./osm-account-dc/log/php-error.log
+	touch ./osm-account-dc/log/nginx-error.log
+	touch ./osm-account-dc/log/nginx-access.log
+
 .PHONY: osmfil-touch
 osmfil-touch:
 	cp -n ./osm-files/.env.example ./osm-files/.env
@@ -190,6 +218,6 @@ osmui-touch:
 
 
 .PHONY: touch-all
-touch-all: osmdir-touch osmauth-touch osmfil-touch osmloc-touch osmui-touch
+touch-all: osmdir-touch osmauth-touch osmact-touch osmfil-touch osmloc-touch osmui-touch
 	cp -n ./.env.example ./.env
 	@echo "Required files in host machine generated."
